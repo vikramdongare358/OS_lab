@@ -1,4 +1,46 @@
+#include <iostream>
+using namespace std;
 
+int main() {
+ int i ,j,x,y,z,r,p;
+
+          cout << "Enter the no of Processes\t";
+    cin >> p;
+    cout << "Enter the no of resource instances\t";
+    cin >> r;
+  int maximum [p][r];
+int allotment [p][r];
+//int requirement [100][100];
+int available [r];
+
+ 
+//  List P0, P1, P2 and P3
+ 
+    cout << "Enter the Max Matrix\n";
+    for (i = 0; i < p; i++)
+    {
+        for (j = 0; j < r; j++)
+        {
+            cin >> maximum [i][j];
+        }
+    }
+    cout << "Enter the Allocation Matrix\n";
+    for (i = 0; i < p; i++)
+    {
+        for (j = 0; j < r; j++)
+        {
+            cin >> allotment [i][j];
+        }
+    }
+    cout << "Enter the available Resources\n";
+    for (j = 0; j < r; j++)
+    {
+        cin >> available [j];
+    }
+
+ int f[p], res[p], ind = 0;
+ for (z = 0; z < p; z++) {
+  f[z] = 0;
  }
  
  int requirement[p][r];
@@ -48,4 +90,3 @@
  }
  return (0);
 }
-

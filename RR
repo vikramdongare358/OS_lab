@@ -1,61 +1,134 @@
-#include<iostream>
-#include<algorithm>
-#include<queue>
+#include<bits/stdc++.h>
 using namespace std;
+struct process_struct {
+  int pid; 
+  int at; 
+  int bt;
+  int ct, wt, tat, rt, start_time; 
+  int bt_remaining; 
+}
+prcs[100]; 
+
+bool comparatorAT(struct process_struct a, struct process_struct b) {
+  int x = a.at;
+  int y = b.at;
+  return x < y;
+ 
+}
+
+bool comparatorPID(struct process_struct a, struct process_struct b) {
+  int x = a.pid;
+  int y = b.pid;
+  return x < y;
+}
 
 int main() {
-    int n, quantum;
-    cout << "Enter the number of processes: ";
-    cin >> n;
-    int arrival_time[n], burst_time[n], completion_time[n], turnaround_time[n], waiting_time[n], remaining_time[n];
-    float avg_turnaround_time = 0, avg_waiting_time = 0;
-    cout << "Enter the arrival time and burst time for each process:\n";
-    for (int i = 0; i < n; i++) {
-        cout << "Process " << i+1 << ":\n";
-        cout << "Arrival time: ";
-        cin >> arrival_time[i];
-        cout << "Burst time: ";
-        cin >> burst_time[i];
-        remaining_time[i] = burst_time[i];
+  int n, index; 
+  int cpu_utilization;
+
+  queue < int > q;
+  
+  bool visited[100] = {
+    false
+  }, is_first_process = true;
+  int current_time = 0;
+  int completed = 0, tq, total_idle_time = 0;
+  cout << "Enter total number of processes: ";
+  cin >> n; 
+
+  for (int i = 0; i < n; i++) {
+    cout << "\nEnter Process " << i << " Arrival Time: ";
+    cin >> prcs[i].at;
+    prcs[i].pid = i;
+  }
+  
+  for (int i = 0; i < n; i++) {
+    cout << "\nEnter Process " << i << " Burst Time: ";
+    cin >> prcs[i].bt;
+    prcs[i].bt_remaining = prcs[i].bt;
+  }
+  cout << "\nEnter the time quantum: ";
+  cin >> tq;
+
+  
+  sort(prcs, prcs + n, comparatorAT);
+ 
+
+  q.push(0); 
+  visited[0] = true;
+ 
+  while (completed != n) {
+   
+    index = q.front();
+
+    q.pop();
+  
+    if (prcs[index].bt_remaining == prcs[index].bt) {
+    
+      prcs[index].start_time = max(current_time, prcs[index].at);
+      total_idle_time += (is_first_process == true) ? 0 : prcs[index].start_time - current_time;
+      current_time = prcs[index].start_time;
+      is_first_process = false;
+
     }
-    cout << "Enter the time quantum: ";
-    cin >> quantum;
-    int current_time = 0, completed = 0;
-    queue<int> q;
-    while (completed != n) {
-        for (int i = 0; i < n; i++) {
-            if (arrival_time[i] <= current_time && remaining_time[i] > 0) {
-                q.push(i);
-            }
-        }
-        if (q.empty()) {
-            current_time++;
-            continue;
-        }
-        int process = q.front();
-        q.pop();
-        if (remaining_time[process] > quantum) {
-            remaining_time[process] -= quantum;
-            current_time += quantum;
-            q.push(process);
-        } else {
-            current_time += remaining_time[process];
-            completion_time[process] = current_time;
-            turnaround_time[process] = completion_time[process] - arrival_time[process];
-            waiting_time[process] = turnaround_time[process] - burst_time[process];
-            avg_turnaround_time += turnaround_time[process];
-            avg_waiting_time += waiting_time[process];
-            remaining_time[process] = 0;
-            completed++;
-        }
+   
+    if (prcs[index].bt_remaining - tq > 0) {
+     
+      prcs[index].bt_remaining -= tq;
+    
+      current_time += tq;
     }
-    cout << "Process\t Arrival Time\t Burst Time\t Completion Time\t Turnaround Time\t Waiting Time\n";
-    for (int i = 0; i < n; i++) {
-        cout << i+1 << "\t\t" << arrival_time[i] << "\t\t" << burst_time[i] << "\t\t" << completion_time[i] << "\t\t" << turnaround_time[i] << "\t\t" << waiting_time[i] << "\n";
+   
+    else {
+      
+      current_time += prcs[index].bt_remaining;
+      
+      prcs[index].bt_remaining = 0;
+     
+      completed++;
+   
+      prcs[index].ct = current_time;
+      prcs[index].tat = prcs[index].ct - prcs[index].at;
+      prcs[index].wt = prcs[index].tat - prcs[index].bt;
+      prcs[index].rt = prcs[index].start_time - prcs[index].at;
     }
-    avg_turnaround_time /= n;
-    avg_waiting_time /= n;
-    cout << "Average Turnaround Time: " << avg_turnaround_time << "\n";
-    cout << "Average Waiting Time: " << avg_waiting_time << "\n";
-    return 0;
+
+    
+    for (int i = 1; i < n; i++) {
+      if (prcs[i].bt_remaining > 0 && prcs[i].at <= current_time && visited[i] == false) {
+        q.push(i);
+        visited[i] = true;
+      }
+    }
+
+    if (prcs[index].bt_remaining > 0)
+      q.push(index);
+
+
+    if (q.empty()) {
+      for (int i = 1; i < n; i++) {
+        if (prcs[i].bt_remaining > 0) {
+          q.push(i);
+          visited[i] = true;
+          break;
+        }
+      }
+    }
+  }  
+  sort(prcs, prcs + n, comparatorPID);
+  cout << "\nPNo.\tAT\tBT\tST\tCT\tTAT\tWT\tRT\n";
+  for (int i = 0; i < n; i++)
+    cout << "P[" << i << "]" << "\t" << prcs[i].at << "\t" << prcs[i].bt << "\t" << prcs[i].start_time << "\t" << prcs[i].ct << "\t" << prcs[i].tat << "\t" << prcs[i].wt << "\t" << prcs[i].rt << endl;
+  cout << endl; 
+  int total =0 ; 
+  for(int i= 0;i<n;i++){ 
+   total+=prcs[i].tat ;
+  } 
+  cout<<"total turn around time"<<total/n<<endl ;
+   total =0 ; 
+  for(int i= 0;i<n;i++){ 
+   total+=prcs[i].wt ;
+  } 
+  cout<<"total waiting time"<<total/n<<endl ;
+  return 0;
 }
